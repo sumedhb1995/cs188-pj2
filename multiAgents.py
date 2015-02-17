@@ -144,51 +144,55 @@ class MinimaxAgent(MultiAgentSearchAgent):
           gameState.getNumAgents():
             Returns the total number of agents in the game
         """
-        v = float('-inf')
-        best = Directions.STOP
-        for action in gameState.getLegalActions(0):
-            temp = self.minValue(0, 1, gameState.generateSuccessor(0, action))
-            if temp > v and action != Directions.STOP:
-                v = temp
-                best = action
-        return best
+        best_score = float('-inf')
+        best_action = Directions.STOP
+        available_actions = gameState.getLegalActions(0)
+        for current_action in available_actions:
+            child = gameState.generateSuccessor(0, current_action)
+            current_score = self.minValue(0, 1, child)
+            if current_score > best_score and current_action != Directions.STOP:
+                best_score = current_score
+                best_action = current_action
+        return best_action
 
 
-    def maxValue(self, depth, agent, state):
+    def maxValue(self, depth, agentIndex, gameState):
         if depth == self.depth:
-            return self.evaluationFunction(state)
+            return self.evaluationFunction(gameState)
         else:
-            actions = state.getLegalActions(agent)
-            if len(actions) > 0:
-                v = float('-inf')
+            available_actions = gameState.getLegalActions(agentIndex)
+            if available_actions:
+                best_score = float('-inf')
             else:
-                v = self.evaluationFunction(state)
-            for action in actions:
-                s = self.minValue(depth, agent+1, state.generateSuccessor(agent, action))
-                if s > v:
-                    v = s
-            return v
+                best_score = self.evaluationFunction(gameState)
+            for next_action in available_actions:
+                child = gameState.generateSuccessor(agentIndex, next_action)
+                current_score = self.minValue(depth, agentIndex+1, child)
+                if current_score > best_score:
+                    best_score = current_score
+            return best_score
 
-    def minValue(self, depth, agent, state):
+    def minValue(self, depth, agentIndex, gameState):
         if depth == self.depth:
-            return self.evaluationFunction(state)
+            return self.evaluationFunction(gameState)
         else:
-            actions = state.getLegalActions(agent)
-            if len(actions) > 0:
-                v = float('inf')
+            available_actions = gameState.getLegalActions(agentIndex)
+            if available_actions:
+                best_score = float('inf')
             else:
-                v = self.evaluationFunction(state)
-
-            for action in actions:
-                if agent == state.getNumAgents() - 1:
-                    s = self.maxValue(depth+1, 0, state.generateSuccessor(agent, action))
-                    if s < v:
-                        v = s
+                best_score = self.evaluationFunction(gameState)
+            for action in available_actions:
+                if agentIndex == gameState.getNumAgents() - 1:
+                    child = gameState.generateSuccessor(agentIndex, action)
+                    current_score = self.maxValue(depth+1, 0, child)
+                    if current_score < best_score:
+                        best_score = current_score
                 else:
-                    s = self.minValue(depth, agent+1, state.generateSuccessor(agent, action))
-                    if s < v:
-                        v = s
-            return v
+                    child = gameState.generateSuccessor(agentIndex, action)
+                    current_score = self.minValue(depth, agentIndex+1, child)
+                    if current_score < best_score:
+                        best_score = current_score
+            return best_score
 
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
