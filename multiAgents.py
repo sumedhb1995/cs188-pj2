@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -204,7 +204,35 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
           Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        best_score = float('-inf')
+        best_action = Directions.STOP
+        available_actions = gameState.getLegalActions(0)
+        for current_action in available_actions:
+            child = gameState.generateSuccessor(0, current_action)
+            current_score = self.minState(child, best_score, float('inf'))
+            if current_score > best_score and current_action != Directions.STOP:
+                best_score = current_score
+                best_action = current_action
+        return best_action
+
+    def maxState(self, state, alpha, beta):
+      v = float('-inf')
+      for successor in state:
+        v = max(v, self.evaluationFunction(successor, alpha, beta))
+        if v > beta:
+          return v
+          alpha = max(alpha, v)
+      return v
+
+    def minState(self, state, alpha, beta):
+      v = float('inf')
+      for successor in state:
+        v = min(v, self.evaluationFunction(successor, alpha, beta))
+        if v < alpha:
+          return v
+          beta = min(beta, v)
+      return v
+
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
