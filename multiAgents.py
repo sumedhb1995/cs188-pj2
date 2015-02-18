@@ -149,47 +149,46 @@ class MinimaxAgent(MultiAgentSearchAgent):
         available_actions = gameState.getLegalActions(0)
         for current_action in available_actions:
             child = gameState.generateSuccessor(0, current_action)
-            current_score = self.minValue(0, 1, child)
+            current_score = self.minimizer(0, 1, child)
             if current_score > best_score and current_action != Directions.STOP:
                 best_score = current_score
                 best_action = current_action
         return best_action
 
-
-    def maxValue(self, depth, agentIndex, gameState):
+    def maximizer(self, depth, agent_index, game_state):
         if depth == self.depth:
-            return self.evaluationFunction(gameState)
+            return self.evaluationFunction(game_state)
         else:
-            available_actions = gameState.getLegalActions(agentIndex)
+            available_actions = game_state.getLegalActions(agent_index)
             if available_actions:
                 best_score = float('-inf')
             else:
-                best_score = self.evaluationFunction(gameState)
+                best_score = self.evaluationFunction(game_state)
             for next_action in available_actions:
-                child = gameState.generateSuccessor(agentIndex, next_action)
-                current_score = self.minValue(depth, agentIndex+1, child)
+                child = game_state.generateSuccessor(agent_index, next_action)
+                current_score = self.minimizer(depth, agent_index+1, child)
                 if current_score > best_score:
                     best_score = current_score
             return best_score
 
-    def minValue(self, depth, agentIndex, gameState):
+    def minimizer(self, depth, agent_index, game_state):
         if depth == self.depth:
-            return self.evaluationFunction(gameState)
+            return self.evaluationFunction(game_state)
         else:
-            available_actions = gameState.getLegalActions(agentIndex)
+            available_actions = game_state.getLegalActions(agent_index)
             if available_actions:
                 best_score = float('inf')
             else:
-                best_score = self.evaluationFunction(gameState)
+                best_score = self.evaluationFunction(game_state)
             for action in available_actions:
-                if agentIndex == gameState.getNumAgents() - 1:
-                    child = gameState.generateSuccessor(agentIndex, action)
-                    current_score = self.maxValue(depth+1, 0, child)
+                if agent_index == game_state.getNumAgents() - 1:
+                    child = game_state.generateSuccessor(agent_index, action)
+                    current_score = self.maximizer(depth+1, 0, child)
                     if current_score < best_score:
                         best_score = current_score
                 else:
-                    child = gameState.generateSuccessor(agentIndex, action)
-                    current_score = self.minValue(depth, agentIndex+1, child)
+                    child = game_state.generateSuccessor(agent_index, action)
+                    current_score = self.minimizer(depth, agent_index+1, child)
                     if current_score < best_score:
                         best_score = current_score
             return best_score
@@ -219,8 +218,50 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
           All ghosts should be modeled as choosing uniformly at random from their
           legal moves.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        best_score = float('-inf')
+        best_action = Directions.STOP
+        available_actions = gameState.getLegalActions(0)
+        for current_action in available_actions:
+            child = gameState.generateSuccessor(0, current_action)
+            current_score = self.expect(0, 1, child)
+            if current_score > best_score and current_action != Directions.STOP:
+                best_score = current_score
+                best_action = current_action
+        return best_action
+
+    def maximizer(self, depth, agent_index, game_state):
+        if depth == self.depth:
+            return self.evaluationFunction(game_state)
+        else:
+            available_actions = game_state.getLegalActions(agent_index)
+            if available_actions:
+                best_score = float('-inf')
+            else:
+                best_score = self.evaluationFunction(game_state)
+            for next_action in available_actions:
+                child = game_state.generateSuccessor(agent_index, next_action)
+                current_score = self.expect(depth, agent_index+1, child)
+                if current_score > best_score:
+                    best_score = current_score
+            return best_score
+
+    def expect(self, depth, agent_index, game_state):
+        if depth == self.depth:
+            return self.evaluationFunction(game_state)
+        else:
+            available_actions = game_state.getLegalActions(agent_index)
+            total_score = 0
+            if available_actions:
+                for action in available_actions:
+                    if agent_index == game_state.getNumAgents() - 1:
+                        child = game_state.generateSuccessor(agent_index, action)
+                        total_score += self.maximizer(depth+1, 0, child)
+                    else:
+                        child = game_state.generateSuccessor(agent_index, action)
+                        total_score += self.expect(depth, agent_index+1, child)
+                    average_score = total_score / len(available_actions)
+                return average_score
+            return self.evaluationFunction(game_state)
 
 def betterEvaluationFunction(currentGameState):
     """
