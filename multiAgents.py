@@ -338,29 +338,49 @@ def betterEvaluationFunction(currentGameState):
     """
     "*** YOUR CODE HERE ***"
     #distance to nearest food
+    #print dir(currentGameState)
+
+
+    if len(currentGameState.getFood().asList()) == 0:
+        return float('inf')
 
     def calc_dist(p1, p2):
       return ((p1[0] - p2[0]) ** 2) + ((p1[1] - p2[1]) ** 2)
 
+    score = currentGameState.getScore()
     newPos = currentGameState.getPacmanPosition()
     newFood = currentGameState.getFood()
     newGhostStates = currentGameState.getGhostStates()
     newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
 
+    #ghost code
+    minGhostDisp = float('inf')
     for ghost in newGhostStates:
-        if ghost.getPosition() == newPos and not ghostState.scaredTimer:
-            return -float("inf")
+        disp = calc_dist(newPos, ghost.getPosition())
+        if disp < minGhostDisp:
+            minGhostDisp = disp
 
+    if ghostState.scaredTimer:
+        if minGhostDisp == 0:
+            return float("inf")
+    else:
+        if minGhostDisp == 0:
+            return float("-inf")
+        minGhostDisp *= -1
+
+    score += .6/float(minGhostDisp)
+
+    #nearest food
     minDisplacement = float("inf")
     for foodPos in currentGameState.getFood().asList():
-        x_disp = abs(foodPos[0] - newPos[0])
-        y_disp = abs(foodPos[1] - newPos[1])
-        displacement = calc_dist(newPos, (x_disp, y_disp))  #x_disp+y_disp
-        if minDisplacement > displacement:
+        displacement = calc_dist(newPos, foodPos)
+        if displacement < minDisplacement:
             minDisplacement = displacement
 
-    return -minDisplacement
+    score += .4/float(minDisplacement)
+
+    return score
 
 # Abbreviation
 better = betterEvaluationFunction
