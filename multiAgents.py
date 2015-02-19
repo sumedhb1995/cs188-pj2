@@ -209,14 +209,15 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         a = float('-inf')
         b = float('inf')
         for current_action in available_actions:
-            child = gameState.generateSuccessor(0, current_action)
-            current_score = self.minimizer(0, 1, child, a, b)
-            if current_score > best_score and current_action != Directions.STOP:
-                best_score = current_score
-                best_action = current_action
-            if best_score > b:
-                return best_score
-            a = max(a, best_score)
+            if current_action != Directions.STOP:
+                child = gameState.generateSuccessor(0, current_action)
+                current_score = self.minimizer(0, 1, child, a, b)
+                if current_score > best_score and current_action != Directions.STOP:
+                    best_score = current_score
+                    best_action = current_action
+                if best_score > b:
+                    return best_score
+                a = max(a, best_score)
         return best_action
 
     def maximizer(self, depth, agent_index, game_state, a, b):
@@ -225,17 +226,20 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             return self.evaluationFunction(game_state)
         else:
             available_actions = game_state.getLegalActions(agent_index)
+
+            best_score = float('-inf')
             if available_actions:
                 best_score = float('-inf')
             else:
                 best_score = self.evaluationFunction(game_state)
             for next_action in available_actions:
-                child = game_state.generateSuccessor(agent_index, next_action)
-                best_score = max(best_score, self.minimizer(depth, agent_index+1, child, a, b))
-                if best_score > b:
-                    return best_score
-                #print("Best score: " + str(best_score))
-                a = max(a, best_score)
+                if next_action != Directions.STOP:
+                    child = game_state.generateSuccessor(agent_index, next_action)
+                    best_score = max(best_score, self.minimizer(depth, agent_index+1, child, a, b))
+                    if best_score > b:
+                        return best_score
+                    #print("Best score: " + str(best_score))
+                    a = max(a, best_score)
             return best_score
 
     def minimizer(self, depth, agent_index, game_state, a, b):
@@ -244,25 +248,29 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             return self.evaluationFunction(game_state)
         else:
             available_actions = game_state.getLegalActions(agent_index)
+
+            best_score = float('inf')
             if available_actions:
                 best_score = float('inf')
             else:
                 best_score = self.evaluationFunction(game_state)
             for action in available_actions:
-                if agent_index == game_state.getNumAgents() - 1:
-                    child = game_state.generateSuccessor(agent_index, action)
-                    best_score = min(best_score, self.maximizer(depth+1, 0, child, a, b))
-                    if best_score < a:
-                        return best_score
-                    b = min(best_score, b)
-                else:
-                    child = game_state.generateSuccessor(agent_index, action)
-                    best_score = min(best_score, self.minimizer(depth, agent_index+1, child, a, b))
-                    if best_score < a:
-                        return best_score
-                    b = min(best_score, b)
-            return best_score
 
+
+                if action != Directions.STOP:
+                    if agent_index == game_state.getNumAgents() - 1:
+                        child = game_state.generateSuccessor(agent_index, action)
+                        best_score = min(best_score, self.maximizer(depth+1, 0, child, a, b))
+                        if best_score < a:
+                            return best_score
+                        b = min(best_score, b)
+                    else:
+                        child = game_state.generateSuccessor(agent_index, action)
+                        best_score = min(best_score, self.minimizer(depth, agent_index+1, child, a, b))
+                        if best_score < a:
+                            return best_score
+                        b = min(best_score, b)
+            return best_score
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
@@ -329,7 +337,30 @@ def betterEvaluationFunction(currentGameState):
       DESCRIPTION: <write something here so we know what you did>
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    #distance to nearest food
+
+    def calc_dist(p1, p2):
+      return ((p1[0] - p2[0]) ** 2) + ((p1[1] - p2[1]) ** 2)
+
+    newPos = currentGameState.getPacmanPosition()
+    newFood = currentGameState.getFood()
+    newGhostStates = currentGameState.getGhostStates()
+    newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
+
+
+    for ghost in newGhostStates:
+        if ghost.getPosition() == newPos and not ghostState.scaredTimer:
+            return -float("inf")
+
+    minDisplacement = float("inf")
+    for foodPos in currentGameState.getFood().asList():
+        x_disp = abs(foodPos[0] - newPos[0])
+        y_disp = abs(foodPos[1] - newPos[1])
+        displacement = calc_dist(newPos, (x_disp, y_disp))  #x_disp+y_disp
+        if minDisplacement > displacement:
+            minDisplacement = displacement
+
+    return -minDisplacement
 
 # Abbreviation
 better = betterEvaluationFunction
